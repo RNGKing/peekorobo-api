@@ -7,6 +7,7 @@ class TeamQuery(BaseModel):
     city: Optional[str]= None
     country : Optional[str] = None
     team_number: Optional[int] = Field(None,gt=0)
+    next_team_number: Optional[int] = Field(None, gt=0)
 
 #team data class that represents teams
 class TeamData(BaseModel):
@@ -21,4 +22,4 @@ class TeamData(BaseModel):
 #The response object from the query
 class TeamResponse(BaseModel):
     team_info : List[TeamData]
-    next: Optional[str] #url for the next set of 100 teams
+    next: Optional[int] #url for the next set of 100 teams
