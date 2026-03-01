@@ -1,6 +1,14 @@
-from typing import List,Tuple
+from typing import List
 from pydantic import BaseModel
 
-class EventAwardsResponse(BaseModel):
+class EventRankingsResponse(BaseModel):
     event_key : str
-    team_and_award : List[Tuple[int, str]]
+    event_rankings : List[TeamRankingInfo]
+
+class TeamRankingInfo(BaseModel):
+    team_number : int
+    rank : int
+    wins : int
+    losses : int
+    ties : int
+    dq : int
