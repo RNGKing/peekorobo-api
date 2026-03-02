@@ -1,6 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List, Annotated
-from fastapi import Query, Path
+from typing import Optional, List
 
 class TeamEpaRequest(BaseModel):
     year : Optional[int] = None

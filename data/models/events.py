@@ -1,6 +1,7 @@
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped, mapped_column
 from db import Base
+from query.events import EventQuery, EventResponse, LocationInfo, EventMetaInfo
 
 class Events(Base):
     __tablename__="events"
@@ -20,3 +21,8 @@ class Events(Base):
     distict_abbrev : Mapped[str] = mapped_column(Text)
     distict_name : Mapped[str] = mapped_column(Text)
 
+def get_events(year : int, query : EventQuery) -> EventResponse:
+    return EventResponse(
+        events=[],
+        next=None
+    )
