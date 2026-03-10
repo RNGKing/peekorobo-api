@@ -1,13 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
 
-class TeamEpaRequest(BaseModel):
-    year : Optional[int] = None
-
-class TeamEpaResponse(BaseModel):
-    team_number : int
-    team_epa_infos : List[TeamEpaInfo]
-
 class TeamEpaInfo(BaseModel):
     year : int
     normal_epa : Optional[float]
@@ -19,3 +12,10 @@ class TeamEpaInfo(BaseModel):
     wins : Optional[int]
     losses : Optional[int]
     ties : Optional[int]
+
+class TeamEpaRequest(BaseModel):
+    year : Optional[int] = None
+
+class TeamEpaResponse(BaseModel):
+    team_number : int
+    team_epa_infos : List[TeamEpaInfo]
