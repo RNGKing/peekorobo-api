@@ -1,4 +1,5 @@
 from typing import Annotated, Optional
+from time import time
 from dotenv import load_dotenv
 from fastapi import FastAPI, Query, Path, Depends, Header, HTTPException, status
 from query.teams import TeamQuery, TeamResponse
@@ -7,10 +8,26 @@ from query.team_epas import TeamEpaRequest, TeamEpaResponse
 from data.db import SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.exc import DBAPIError
 import data.models.teams as teams
 import data.models.team_epas as team_epas
 
 load_dotenv()
+
+AUTH_TIMEOUT_MS = 2000  # 2 seconds
+AUTH_CACHE_TTL_SECONDS = 300  # 5 min — change to 3600 for 1 hour
+
+_auth_cache: dict[str, float] = {}  # api_key -> cached_at
+
+def _apply_auth_timeout(db: Session) -> None:
+    bind = db.get_bind()
+    if bind is None:
+        return
+    if bind.dialect.name == "postgresql":
+        db.execute(
+            text("SET LOCAL statement_timeout = :timeout_ms"),
+            {"timeout_ms": AUTH_TIMEOUT_MS}
+        )
 
 def get_db():
     db = SessionLocal()
@@ -26,12 +43,29 @@ def verify_api_key(
     if not api_key:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing API key")
 
-    result = db.execute(
-        text("SELECT 1 FROM users WHERE api_key = :api_key"),
-        {"api_key": api_key}
-    ).first()
+    now = time()
+    cached_at = _auth_cache.get(api_key)
+    if cached_at is not None and (now - cached_at) < AUTH_CACHE_TTL_SECONDS:
+        return
+
+    _apply_auth_timeout(db)
+    try:
+        result = db.execute(
+            text("SELECT 1 FROM users WHERE api_key = :api_key"),
+            {"api_key": api_key}
+        ).first()
+    except DBAPIError as exc:
+        message = str(getattr(exc, "orig", exc)).lower()
+        if "statement timeout" in message or "query canceled" in message:
+            raise HTTPException(
+                status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                detail="Authentication timed out"
+            )
+        raise
     if not result:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
+
+    _auth_cache[api_key] = now
 
 app = FastAPI()
 
