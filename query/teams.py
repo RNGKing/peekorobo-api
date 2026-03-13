@@ -17,7 +17,7 @@ class TeamData(BaseModel):
     state_prov : str
     country : str
     website : Optional[str]
-    district : Optional[str]
+    district_key : Optional[str] = None
 
 #The response object from the query
 class TeamResponse(BaseModel):

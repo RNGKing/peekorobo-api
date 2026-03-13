@@ -15,7 +15,7 @@ import data.models.team_epas as team_epas
 load_dotenv()
 
 AUTH_TIMEOUT_MS = 2000  # 2 seconds
-AUTH_CACHE_TTL_SECONDS = 300  # 5 min — change to 3600 for 1 hour
+AUTH_CACHE_TTL_SECONDS = 300  # 5 min 
 
 _auth_cache: dict[str, float] = {}  # api_key -> cached_at
 

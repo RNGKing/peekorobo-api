@@ -1,6 +1,7 @@
 import datetime
+from typing import Optional
 from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy import Text, select, func
+from sqlalchemy import Text, INT, select, func
 from sqlalchemy.orm import Mapped, mapped_column, Session, QueryEvents
 from db import Base
 from query.events import EventQuery, EventResponse, LocationInfo, EventMetaInfo, EventData
@@ -19,9 +20,10 @@ class Events(Base):
     website: Mapped[str] = mapped_column(Text)
     webcast_type: Mapped[str] = mapped_column(Text)
     webcast_channel: Mapped[str] = mapped_column(Text)
-    distict_key: Mapped[str] = mapped_column(Text)
-    distict_abbrev : Mapped[str] = mapped_column(Text)
-    distict_name : Mapped[str] = mapped_column(Text)
+    district_key: Mapped[str] = mapped_column(Text)
+    district_abbrev : Mapped[str] = mapped_column(Text)
+    district_name : Mapped[str] = mapped_column(Text)
+    week : Mapped[Optional[int]] = mapped_column(INT)
 
 def build_events_response(event : Events) -> EventData:
     meta_data = EventMetaInfo(name = "", start_date=datetime.datetime.now(), end_date=datetime.datetime.now(), event_type="")

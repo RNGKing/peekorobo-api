@@ -18,6 +18,8 @@ class MatchResponse(BaseModel):
     blue_teams : List[int]
     red_score : int
     blue_score : int
-    winning_alliance : int
+    winning_alliance : str
     youtube_key : Optional[str] = None
-    predicted_time : int
+    predicted_time : Optional[int] = None
+    red_win_prob : Optional[float] = None
+    blue_win_prob : Optional[float] = None

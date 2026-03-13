@@ -1,8 +1,8 @@
 from sqlalchemy import Text, select, ScalarResult
 from sqlalchemy.orm import Mapped, mapped_column, Session
+from typing import List, Optional
 from data.db import Base
 from query.teams import TeamQuery, TeamResponse, TeamData
-from typing import List, Optional
 
 class Teams(Base):
     __tablename__="teams"
@@ -13,7 +13,7 @@ class Teams(Base):
     state_prov : Mapped[str] = mapped_column(Text)
     country : Mapped[str] = mapped_column(Text)
     website : Mapped[str] = mapped_column(Text)
-    district : Mapped[str] = mapped_column(Text)
+    district_key : Mapped[Optional[str]] = mapped_column(Text)
 
 def to_team_response(input : Teams) -> TeamData:
     return TeamData(team_number=input.team_number.numerator,
@@ -22,7 +22,7 @@ def to_team_response(input : Teams) -> TeamData:
                     city=str(input.city),
                     country=str(input.country),
                     website=str(input.website),
-                    district=str(input.district))
+                    district_key=input.district_key)
     
 def get_teams(db : Session, query : TeamQuery) -> TeamResponse:
     whereargs = []
