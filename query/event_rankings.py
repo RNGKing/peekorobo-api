@@ -1,9 +1,8 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
-class EventRankingsResponse(BaseModel):
-    event_key : str
-    event_rankings : List[TeamRankingInfo]
+class EventRankingsQuery(BaseModel):
+    team_number: Optional[int] = None
 
 class TeamRankingInfo(BaseModel):
     team_number : int
@@ -12,3 +11,7 @@ class TeamRankingInfo(BaseModel):
     losses : int
     ties : int
     dq : int
+
+class EventRankingsResponse(BaseModel):
+    event_key : str
+    event_rankings : List[TeamRankingInfo]

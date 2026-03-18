@@ -1,8 +1,20 @@
-from sqlalchemy import Text, select, ScalarResult
+from sqlalchemy import Text, select, ScalarResult, or_, func
 from sqlalchemy.orm import Mapped, mapped_column, Session
 from typing import List, Optional
 from data.db import Base
 from query.teams import TeamQuery, TeamResponse, TeamData
+
+def _district_match(column, district_key: str):
+    """Match district_key (handles 2024fim or FIM format)."""
+    dk = (district_key or "").strip()
+    if not dk:
+        return None
+    if len(dk) > 4 and dk[:4].isdigit():
+        return column.ilike(dk)
+    return or_(
+        column.ilike(dk),
+        (func.length(column) > 4) & (func.substring(column, 5).ilike(dk)),
+    )
 
 class Teams(Base):
     __tablename__="teams"
@@ -26,15 +38,27 @@ def to_team_response(input : Teams) -> TeamData:
     
 def get_teams(db : Session, query : TeamQuery) -> TeamResponse:
     whereargs = []
+    stmt = select(Teams)
+    if query.year is not None:
+        from data.models.team_epas import TeamEpa
+        stmt = stmt.join(TeamEpa, Teams.team_number == TeamEpa.team_number).where(TeamEpa.year == query.year)
     if query.city:
-        whereargs.append(Teams.city == query.city)
+        whereargs.append(func.lower(Teams.city) == func.lower(query.city))
+    if query.state_prov:
+        whereargs.append(func.lower(Teams.state_prov) == func.lower(query.state_prov))
     if query.country:
-        whereargs.append(Teams.country == query.country)
+        whereargs.append(func.lower(Teams.country) == func.lower(query.country))
+    if query.district_key:
+        cond = _district_match(Teams.district_key, query.district_key)
+        if cond is not None:
+            whereargs.append(cond)
     if query.team_number:
         whereargs.append(Teams.team_number == query.team_number)
     if query.next_team_number:
         whereargs.append(Teams.team_number > query.next_team_number)
-    stmt = select(Teams).where(*whereargs).limit(query.limit).order_by(Teams.team_number)
+    if whereargs:
+        stmt = stmt.where(*whereargs)
+    stmt = stmt.limit(query.limit).order_by(Teams.team_number)
     result : ScalarResult[Teams] = db.scalars(stmt)
     team_infos : List[TeamData] = list(map(to_team_response, result.all()))
     last_id : Optional[int] = None
